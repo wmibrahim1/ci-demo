@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'YOUR_REPO_URL'
+                git branch: 'main', url: 'https://github.com/wmibrahim1/ci-demo'
             }
         }
 
@@ -41,7 +41,7 @@ def sendWebexMessage(String messageText) {
             curl -X POST \
                  -H "Authorization: Bearer $WEBEX_TOKEN" \
                  -H "Content-Type: application/json" \
-                 -d '{ "roomId": "YOUR_ROOM_ID_HERE", "text": "${messageText}" }' \
+                 -d '{ "roomId": "aHR0cHM6Ly9jb252LXIud2J4Mi5jb20vY29udmVyc2F0aW9uL2FwaS92MS9jb252ZXJzYXRpb25zLzhjMjc5NzMwLWM5YWYtMTFmMC04NzYzLThiZDY2MDdhZGVlMg==", "text": "${messageText}" }' \
                  https://webexapis.com/v1/messages
         """
     }
