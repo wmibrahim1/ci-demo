@@ -9,18 +9,24 @@ pipeline {
         }
 
         stage('Install Dependencies') {
-            steps {
-                sh 'python3 -m pip install --upgrade pip'
-                sh 'pip3 install -r requirements.txt'
-            }
-        }
+    steps {
+        sh '''
+        python3 -m venv venv
+        . venv/bin/activate
+        pip install --upgrade pip
+        pip install -r requirements.txt
+        '''
+    }
+}
 
         stage('Run Tests') {
-            steps {
-                sh 'pytest'
-            }
-        }
+    steps {
+        sh '''
+        . venv/bin/activate
+        pytest
+        '''
     }
+}
 
     post {
         success {
