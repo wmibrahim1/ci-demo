@@ -1,16 +1,28 @@
 pipeline {
-    agent any
+    agent {
+        docker { 
+            image 'python:3.11'  // Python + pip preinstalled
+            args '-u root:root'  // optional: run as root inside container
+        }
+    }
+
+    environment {
+        WEBEX_ROOM_ID = 'aHR0cHM6Ly9jb252LXIud2J4Mi5jb20vY29udmVyc2F0aW9uL2FwaS92MS9jb252ZXJzYXRpb25zLzhjMjc5NzMwLWM5YWYtMTFmMC04NzYzLThiZDY2MDdhZGVlMg==' // replace with your actual Room ID
+    }
 
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/wmibrahim1/ci-demo'
+                git branch: 'main',
+                    url: 'https://github.com/wmibrahim1/ci-demo.git',
+                    credentialsId: 'github-creds' // only needed if private repo
             }
         }
 
         stage('Install Dependencies') {
             steps {
-                sh 'pip3 install -r requirements.txt'
+                sh 'pip install --upgrade pip'
+                sh 'pip install -r requirements.txt'
             }
         }
 
@@ -41,9 +53,8 @@ def sendWebexMessage(String messageText) {
             curl -X POST \
                  -H "Authorization: Bearer $WEBEX_TOKEN" \
                  -H "Content-Type: application/json" \
-                 -d '{ "roomId": "aHR0cHM6Ly9jb252LXIud2J4Mi5jb20vY29udmVyc2F0aW9uL2FwaS92MS9jb252ZXJzYXRpb25zLzhjMjc5NzMwLWM5YWYtMTFmMC04NzYzLThiZDY2MDdhZGVlMg==", "text": "${messageText}" }' \
+                 -d '{ "roomId": "${env.WEBEX_ROOM_ID}", "text": "${messageText}" }' \
                  https://webexapis.com/v1/messages
         """
     }
 }
-
