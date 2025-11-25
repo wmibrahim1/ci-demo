@@ -1,4 +1,5 @@
-echo "# Force build" >> README.md
+echo "# Trigger Jenkins Build" >> README.md
 git add README.md
-git commit -m "Force Jenkins build"
+git commit -m "Trigger Jenkins build"
 git push
+
