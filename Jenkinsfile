@@ -1,33 +1,33 @@
 pipeline {
-  agent {
-    docker {
-      image 'python:3.11-slim'
-      args '-u root:root'   // run as root so we can install deps
-    }
-  }
+  agent any
+
   environment {
-    WEBEX_BOT_TOKEN = credentials('OWYwYjk4ZTktMjQ0MC00YTE2LWI3M2EtOTBhMGU5ODUwNGZlMDg5MGYwYjMtZTM0_P0A1_13494cac-24b4-4f89-8247-193cc92a7636') // store token in Jenkins credentials
-    WEBEX_ROOM_ID  = credentials('8c279730-c9af-11f0-8763-8bd6607adee2')    // store target roomId (or use plain string)
+    WEBEX_BOT_TOKEN = credentials('OWYwYjk4ZTktMjQ0MC00YTE2LWI3M2EtOTBhMGU5ODUwNGZlMDg5MGYwYjMtZTM0_P0A1_13494cac-24b4-4f89-8247-193cc92a7636')
+    WEBEX_ROOM_ID  = credentials('8c279730-c9af-11f0-8763-8bd6607adee2')
   }
+
   stages {
     stage('Checkout') {
       steps {
         checkout scm
       }
     }
-    stage('Install deps') {
+
+    stage('Install Python Deps') {
       steps {
-        sh 'python -m pip install --upgrade pip'
-        sh 'pip install -r requirements.txt'
+        sh 'python3 -m pip install --upgrade pip'
+        sh 'pip3 install -r requirements.txt'
       }
     }
-    stage('Run tests') {
+
+    stage('Run Tests') {
       steps {
         sh 'pytest --junitxml=reports/results.xml'
         junit 'reports/results.xml'
       }
     }
   }
+
   post {
     success {
       script {
