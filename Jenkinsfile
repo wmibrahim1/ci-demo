@@ -1,49 +1,55 @@
 pipeline {
-    agent {
-        docker { image 'python:3.11-slim' }
+  agent {
+    docker {
+      image 'python:3.11-slim'
+      args '-u root:root'   // run as root so we can install deps
     }
-
-    stages {
-        stage('Checkout') {
-            steps {
-                git branch: 'main', url: 'https://github.com/wmibrahim1/ci-demo.git', credentialsId: 'github-creds'
-            }
-        }
-
-        stage('Install Dependencies') {
-            steps {
-                sh '''
-                pip install --upgrade pip
-                pip install -r requirements.txt
-                '''
-            }
-        }
-
-        stage('Run Tests') {
-            steps {
-                sh 'pytest'
-            }
-        }
+  }
+  environment {
+    WEBEX_BOT_TOKEN = credentials('webex-bot-token') // store token in Jenkins credentials
+    WEBEX_ROOM_ID  = credentials('webex-room-id')    // store target roomId (or use plain string)
+  }
+  stages {
+    stage('Checkout') {
+      steps {
+        checkout scm
+      }
     }
-
-    post {
-        success {
-            script { sendWebexMessage("✅ Build SUCCESS for ${env.JOB_NAME} #${env.BUILD_NUMBER}") }
-        }
-        failure {
-            script { sendWebexMessage("❌ Build FAILED for ${env.JOB_NAME} #${env.BUILD_NUMBER}") }
-        }
+    stage('Install deps') {
+      steps {
+        sh 'python -m pip install --upgrade pip'
+        sh 'pip install -r requirements.txt'
+      }
     }
-}
-
-def sendWebexMessage(String messageText) {
-    withCredentials([string(credentialsId: 'webex_bot_token', variable: 'WEBEX_TOKEN')]) {
+    stage('Run tests') {
+      steps {
+        sh 'pytest --junitxml=reports/results.xml'
+        junit 'reports/results.xml'
+      }
+    }
+  }
+  post {
+    success {
+      script {
+        def msg = "✅ Jenkins Build SUCCESS: Job ${env.JOB_NAME} #${env.BUILD_NUMBER} (${env.BUILD_URL})"
         sh """
-        curl -X POST \
-             -H "Authorization: Bearer $WEBEX_TOKEN" \
-             -H "Content-Type: application/json" \
-             -d '{ "roomId": "aHR0cHM6Ly9jb252LXIud2J4Mi5jb20vY29udmVyc2F0aW9uL2FwaS92MS9jb252ZXJzYXRpb25zLzhjMjc5NzMwLWM5YWYtMTFmMC04NzYzLThiZDY2MDdhZGVlMg", "text": "${messageText}" }' \
-             https://webexapis.com/v1/messages
+          curl -s -X POST https://webexapis.com/v1/messages \
+            -H "Authorization: Bearer ${WEBEX_BOT_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d '{"roomId":"${WEBEX_ROOM_ID}","markdown":"${msg}"}'
         """
+      }
     }
+    failure {
+      script {
+        def msg = "❌ Jenkins Build FAILED: Job ${env.JOB_NAME} #${env.BUILD_NUMBER} (${env.BUILD_URL})"
+        sh """
+          curl -s -X POST https://webexapis.com/v1/messages \
+            -H "Authorization: Bearer ${OWYwYjk4ZTktMjQ0MC00YTE2LWI3M2EtOTBhMGU5ODUwNGZlMDg5MGYwYjMtZTM0_P0A1_13494cac-24b4-4f89-8247-193cc92a7636}" \
+            -H "Content-Type: application/json" \
+            -d '{"roomId":"${8c279730-c9af-11f0-8763-8bd6607adee2}","markdown":"${msg}"}'
+        """
+      }
+    }
+  }
 }
