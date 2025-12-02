@@ -6,8 +6,8 @@ pipeline {
     }
   }
   environment {
-    WEBEX_BOT_TOKEN = credentials('webex-bot-token') // store token in Jenkins credentials
-    WEBEX_ROOM_ID  = credentials('webex-room-id')    // store target roomId (or use plain string)
+    WEBEX_BOT_TOKEN = credentials('OWYwYjk4ZTktMjQ0MC00YTE2LWI3M2EtOTBhMGU5ODUwNGZlMDg5MGYwYjMtZTM0_P0A1_13494cac-24b4-4f89-8247-193cc92a7636') // store token in Jenkins credentials
+    WEBEX_ROOM_ID  = credentials('8c279730-c9af-11f0-8763-8bd6607adee2')    // store target roomId (or use plain string)
   }
   stages {
     stage('Checkout') {
@@ -45,9 +45,9 @@ pipeline {
         def msg = "❌ Jenkins Build FAILED: Job ${env.JOB_NAME} #${env.BUILD_NUMBER} (${env.BUILD_URL})"
         sh """
           curl -s -X POST https://webexapis.com/v1/messages \
-            -H "Authorization: Bearer ${OWYwYjk4ZTktMjQ0MC00YTE2LWI3M2EtOTBhMGU5ODUwNGZlMDg5MGYwYjMtZTM0_P0A1_13494cac-24b4-4f89-8247-193cc92a7636}" \
+            -H "Authorization: Bearer ${WEBEX_BOT_TOKEN}" \
             -H "Content-Type: application/json" \
-            -d '{"roomId":"${8c279730-c9af-11f0-8763-8bd6607adee2}","markdown":"${msg}"}'
+            -d '{"roomId":"${WEBEX_ROOM_ID}","markdown":"${msg}"}'
         """
       }
     }
